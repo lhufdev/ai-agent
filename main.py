@@ -13,8 +13,8 @@ ENV_GEMINI_API_KEY: Final = "GEMINI_API_KEY"
 
 class GenerationResult(TypedDict):
     user_prompt: str
-    prompt_token_count: int
-    response_token_count: int
+    prompt_token_count: int | None
+    response_token_count: int | None
     response_text: str
 
 
