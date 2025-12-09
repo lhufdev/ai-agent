@@ -1,6 +1,8 @@
 import os
 from typing import TypedDict
 
+from utils import resolve_and_validate_path
+
 
 class FileInfo(TypedDict):
     name: str
@@ -31,22 +33,17 @@ def format_contents_info(contents_info: list[FileInfo]) -> str:
 
 def get_files_info(working_directory: str, directory: str = ".") -> str:
     try:
-        relative_target_path = os.path.join(working_directory, directory)
-        absolute_working_dir_path = os.path.abspath(working_directory)
-        absolute_target_path = os.path.abspath(relative_target_path)
+        path, error = resolve_and_validate_path(working_directory, directory)
+        if error:
+            return error
 
-        is_directory = os.path.isdir(absolute_target_path)
-        is_within_working_dir = absolute_target_path.startswith(
-            absolute_working_dir_path
-        )
+        # path is a valid string at this point
+        assert path is not None
 
-        if not is_within_working_dir:
-            return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
-
-        if not is_directory:
+        if not os.path.isdir(path):
             return f'Error: "{directory}" is not a directory'
 
-        return format_contents_info(get_path_contents_info(absolute_target_path))
+        return format_contents_info(get_path_contents_info(path))
 
     except Exception as ex:
         return f"Error: {ex}"
