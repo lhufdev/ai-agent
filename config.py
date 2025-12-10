@@ -1,5 +1,6 @@
 MODEL = "gemini-2.5-flash"  # model to use
 MSG_LIMIT = 10000  # max characters in single request
+PYTHON_RUN_TIMEOUT = 30  # python code run timeout in seconds
 
 
 class ErrorMessage:
