@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-from constants import ErrorMessage, Model
+from config import MODEL, ErrorMessage
 
 ENV_GEMINI_API_KEY: Final = "GEMINI_API_KEY"
 
@@ -45,7 +45,7 @@ def create_client(api_key: str) -> genai.Client:
 def gen_content_with_usage(
     gen_ai_client: genai.Client,
     prompt: str,
-    model: Model = Model.FLASH_25,
+    model: str,
 ) -> GenerationResult:
     """Generate response from Gemini"""
 
@@ -83,7 +83,9 @@ def main() -> None:
     try:
         gen_ai_client = create_client(get_api_key())
         initial_prompt = " ".join(cli_args.prompt)
-        result = gen_content_with_usage(gen_ai_client, prompt=initial_prompt)
+        result = gen_content_with_usage(
+            gen_ai_client, prompt=initial_prompt, model=MODEL
+        )
         print_gen_result(result, cli_args.verbose)
 
     except Exception as ex:

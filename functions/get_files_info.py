@@ -37,7 +37,6 @@ def get_files_info(working_directory: str, directory: str = ".") -> str:
         if error:
             return error
 
-        # path is a valid string at this point
         assert path is not None
 
         if not os.path.isdir(path):

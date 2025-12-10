@@ -1,8 +1,5 @@
-from enum import StrEnum
-
-
-class Model(StrEnum):
-    FLASH_25 = "gemini-2.5-flash"
+MODEL = "gemini-2.5-flash"  # model to use
+MSG_LIMIT = 10000  # max characters in single request
 
 
 class ErrorMessage:
