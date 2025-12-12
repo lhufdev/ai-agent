@@ -7,6 +7,7 @@ from google import genai
 from google.genai import types
 
 from config import MODEL, ErrorMessage
+from prompts import SYSTEM_PROMPT
 
 ENV_GEMINI_API_KEY: Final = "GEMINI_API_KEY"
 
@@ -49,11 +50,15 @@ def gen_content_with_usage(
 ) -> GenerationResult:
     """Generate response from Gemini"""
 
+    config = types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
+
     messages: list[types.Content] = [
         types.Content(role="user", parts=[types.Part(text=prompt)])
     ]
 
-    response = gen_ai_client.models.generate_content(model=model, contents=messages)
+    response = gen_ai_client.models.generate_content(
+        model=model, contents=messages, config=config
+    )
 
     if response.usage_metadata is None or response.text is None:
         raise RuntimeError(ErrorMessage.API_REQUEST_FAILED)
