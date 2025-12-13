@@ -1,34 +1,15 @@
 import argparse
-import os
-from typing import Final, TypedDict
+from typing import TypedDict
 
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
 from config import MODEL, WORKING_DIR, ErrorMessage
-from functions.get_file_content import get_file_content, schema_get_file_content
-from functions.get_files_info import get_files_info, schema_get_files_info
-from functions.run_python_file import run_python_file, schema_run_python_file
-from functions.write_file import schema_write_file, write_file
-from prompts import SYSTEM_PROMPT
-
-ENV_GEMINI_API_KEY: Final = "GEMINI_API_KEY"
-
-# Register available tool schemas (function calling)
-available_functions = types.Tool(
-    function_declarations=[
-        schema_get_files_info,
-        schema_get_file_content,
-        schema_run_python_file,
-        schema_write_file,
-    ]
-)
-
-# Generation config
-config = types.GenerateContentConfig(
-    tools=[available_functions], system_instruction=SYSTEM_PROMPT
-)
+from functions.get_file_content import get_file_content
+from functions.get_files_info import get_files_info
+from functions.run_python_file import run_python_file
+from functions.write_file import write_file
+from llm_client import config, create_client, get_api_key, load_env
 
 
 class GenerationResult(TypedDict):
@@ -39,28 +20,11 @@ class GenerationResult(TypedDict):
     response_text: str
 
 
-def load_env() -> None:
-    load_dotenv()
-
-
 def get_cli_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("prompt", nargs="+", help="user prompt")
     parser.add_argument("--verbose", action="store_true", help="enable verbose output")
     return parser.parse_args()
-
-
-def get_api_key() -> str:
-    """Load and validate GEMINI_API_KEY from .env"""
-    api_key = os.getenv(ENV_GEMINI_API_KEY)
-    if not api_key:
-        raise RuntimeError(ErrorMessage.NO_API_KEY)
-    return api_key
-
-
-def create_client(api_key: str) -> genai.Client:
-    """Create Gemini client"""
-    return genai.Client(api_key=api_key)
 
 
 def get_function_calls_text(function_calls) -> str:
@@ -128,7 +92,6 @@ def gen_content_with_usage(
 
     # If present prefer function calls, otherwise fallback to text
     # Ensure response_text is always string
-    #
     function_call_parts: list[types.Part] = []
     if response.function_calls:
         for function_call in response.function_calls:
@@ -148,7 +111,7 @@ def gen_content_with_usage(
             if verbose:
                 print(f"-> {function_call_result.parts[0].function_response.response}")
 
-        response_text = get_function_calls_text(response.function_calls)
+        response_text = ""
 
     elif response.text is not None:
         response_text = response.text
@@ -170,7 +133,8 @@ def print_gen_result(result: GenerationResult, verbose_mode: bool) -> None:
         print(f"Prompt tokens: {result['prompt_token_count']}")
         print(f"Response tokens: {result['response_token_count']}")
 
-    print(f"Response: {result['response_text']}")
+    if result["response_text"]:
+        print(f"Response: {result['response_text']}")
 
 
 def main() -> None:
